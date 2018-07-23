@@ -30,6 +30,7 @@ unset logFile
 
 # Global variables
 unset listDetails
+unset logsDetails
 unset appName
 unset action
 unset pid
@@ -63,6 +64,7 @@ unset actuator_path_option
 unset timeout_option
 unset nb_inst_option
 unset params_option_array
+unset file_option
 params_option_index=0
 ibm_option=false
 watch_option=false
@@ -81,7 +83,7 @@ function usage {
   print
 
   increment_print_tabs 
-  print "$SCRIPT_NAME [logging_option] action [list_option] [application name] [options]"
+  print "$SCRIPT_NAME [logging_option] action [list_option|logs_method] [application name] [options]"
   print
   decrement_print_tabs
 
@@ -110,6 +112,7 @@ function usage {
     print "restart      Restart the application. You can add parameters -p or --nb (see after)"
     print "status       Give a status of all current running instances"
     print "nb           Give the number of instances supposed to run"
+    print "logs         Display the logs for the given port. Port is mandatory. As well as the file option. Note: You need to give which reader (logs_reader) to use. This will give something like: '$SCRIPT_NAME logs more [app] -f {filepath} -p {port}'"
   decrement_print_tabs
   print
 
@@ -138,6 +141,8 @@ function usage {
     print "\tStart parameter. Many values. Extra parameter that you can give directly to the start of the application."
     print "-ap | --actuator_path"
     print "\tStop/Status parameter. Actuator path. This parameter gives on which prefix path are actuator services (status & smooth stop). 'manage/' by default."
+    print "-f | --file"
+    print "\tLogs parameter. Filepath to the log file. You can use env variables as well as {pid} and {port} placeholders."
     print "-k | --kill"
     print "\tStop parameter. Kill -9 directly the application. No smooth stop ..."
     print "-n | --nb_inst"
@@ -424,6 +429,9 @@ function parsePortOption {
   fi
   unset portArr
   portArrIndex=0
+
+  tracePrint "Set running ports default = $setRunningPortsDefault"
+  tracePrint "Check with running ports = $checkWithRunningPorts"
 
   if [[ ! -z $port_option ]]; then
     cmdLine="echo \"$port_option\" | tr \",\" \"\\\\n\""
@@ -978,28 +986,17 @@ function listPorts {
 }
 
 function listPids {
-  parsePortOption false false
-  if [[ -z "$portArr" ]]; then
-    increment_print_tabs
-    getRunningPids
-    decrement_print_tabs
-
-    if [[ ! -z $pidArr ]]; then
-      output=""
-      for p in "${pidArr[@]}"
-      do
-        print $p
-      done
-    else
-      print "No pid found..."
-    fi
-  else
+  parsePortOption true
+  
+  if [[ ! -z "$portArr" ]]; then
     for p in "${portArr[@]}"
     do
       port=$p
       getPidFromPort
-      print $pid
+      print "$port => $pid"
     done
+  else
+    print "No instance found ..."
   fi
 }
 
@@ -1007,7 +1004,7 @@ function listPids {
 ## Start / Stop / Restart
 
 function status {
-  parsePortOption true false
+  parsePortOption true
   if [[ ! -z $portArr ]]; then
     for port in "${portArr[@]}"
     do
@@ -1139,6 +1136,23 @@ function restart {
   fi
 }
 
+function showLogs {
+  parsePortOption false true
+  if [[ -z "$portArr" ]]; then
+    errorPrint "You need to provide a port ..."  
+  else
+    for p in "${portArr[@]}"
+    do
+      port=$p
+      getPidFromPort
+      echo $file_option
+      logFile=$(echo "$file_option" | sed -e "s/{pid}/${pid}/g")
+      eval "$logsDetails $logFile"
+      break
+    done
+  fi
+}
+
 #########################################################################
 #########################################################################
 #########################################################################
@@ -1176,6 +1190,10 @@ if [[ "$action" == "list" ]]; then
     tracePrint "Got list details $listDetails"
     shift
   fi
+elif [[ "$action" == "logs" ]]; then
+  logsDetails=$1
+  tracePrint "Got list details $logsDetails"
+  shift
 fi
 
 if [[ $1 != -* ]]; then
@@ -1269,6 +1287,12 @@ while [ "$1" != "" ]; do
       params_option_index=$((params_option_index+1))
       ;;
 
+    -f | --file )
+      shift
+      debugPrint "=> Add File $1"
+      file_option=$1
+      ;;
+
     -h | --help )
       usage
       exit
@@ -1309,6 +1333,11 @@ case "$action" in
   status)
     checkAppName
     status
+    ;;
+
+  logs)
+    checkAppName
+    showLogs
     ;;
     
   stop)
