@@ -747,19 +747,12 @@ function stopApp {
   
     debugPrint "Stopping smoothly application via actuator url $url" false
 
-    local curlOutputFile="/dev/null"
-    if [[ "$debug_option" = "true" ]]; then
-      curlOutputFile="${SERVICE_DATA_FOLDER}/curl_output.$RANDOM"
-      debugPrint "Set curl output debug file $curlOutputFile"
-    fi
+    HTTP_STATUS=$(curl -X POST -i -o - --silent -m 5 $url | grep HTTP | awk '{print $2}')
 
-    curl -X POST -o "$curlOutputFile" -I -w "%{http_code}" -m 5 $url > httpCode 2>/dev/null
-    httpCode=`cat httpCode`
-    rm httpCode
-
-    if [[ "$debug_option" = "true" ]]; then
-      local curlOutput=`cat "$curlOutputFile"`
-      debugPrint "Got curl output $curlOutput"
+    if [[ "$debug_option" = "true" ]] && [[ "$HTTP_STATUS" != "200" ]]; then
+      HTTP_BODY=$(curl -X POST -o - --silent -m 5 $url)
+      debugPrint "Problem got status $HTTP_STATUS"
+      debugPrint "Problem got body $HTTP_BODY"
     fi
 	  
     status=$?
@@ -767,9 +760,10 @@ function stopApp {
       debugPrint 
       debugPrint "FAILED !!!!! Server on port $port not responding"
       status=1
-    elif [ "$httpCode" != "200" ]; then
+    elif [ "$HTTP_STATUS" != "200" ]; then
       debugPrint 
-      debugPrint "FAILED !!!!! Problem while targeting url $url. Http error code=$httpCode"
+      debugPrint "FAILED !!!!! Problem while targeting url $url. Http error code=$HTTP_STATUS"
+      debugPrint "Response is: "
       status=1
     else
       status=1
