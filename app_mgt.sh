@@ -232,6 +232,39 @@ function exeShellCmdLine {
   unset cmdLine
 }
 
+function exeCurl {
+  curlUrl=$1
+  curlMethod=$2
+  if [[ -z "$curlMethod" ]]; then
+    curlMethod="GET"
+  fi
+
+  tracePrint "exeCurl with url $curlUrl and method $curlMethod"
+
+  curlOutput=$(curl -si -d "" --request "$curlMethod" http://$curlUrl)
+  curlHeader=""
+  curlBody=""
+  curlStatus=""
+
+  local head=true
+  while read -r line; do 
+    if $head; then 
+      if [[ $line = $'\r' ]]; then
+        head=false
+      else
+        curlHeader="$curlHeader"$'\n'"$line"
+      fi
+    else
+      curlBody="$curlBody"$'\n'"$line"
+    fi
+  done < <(echo "$curlOutput")
+
+  curlBody=$(echo "$curlBody" | tr -d [:space:])
+  curlStatus=$(echo "$curlHeader" | grep HTTP | awk '{print $2}')
+
+  tracePrint "Got status $curlStatus and body $curlBody"
+}
+
 function containsElement () {
   local e match="$1"
   shift
@@ -747,22 +780,16 @@ function stopApp {
   
     debugPrint "Stopping smoothly application via actuator url $url" false
 
-    HTTP_STATUS=$(curl -X POST -i -o - --silent -m 5 $url | grep HTTP | awk '{print $2}')
-
-    if [[ "$debug_option" = "true" ]] && [[ "$HTTP_STATUS" != "200" ]]; then
-      HTTP_BODY=$(curl -X POST -o - --silent -m 5 $url)
-      debugPrint "Problem got status $HTTP_STATUS"
-      debugPrint "Problem got body $HTTP_BODY"
-    fi
+    exeCurl $url "POST"
 	  
     status=$?
     if [ $status != 0 ] ; then
       debugPrint 
       debugPrint "FAILED !!!!! Server on port $port not responding"
       status=1
-    elif [ "$HTTP_STATUS" != "200" ]; then
+    elif [ "$curlStatus" != "200" ]; then
       debugPrint 
-      debugPrint "FAILED !!!!! Problem while targeting url $url. Http error code=$HTTP_STATUS"
+      debugPrint "FAILED !!!!! Problem while targeting url $url. Http error code=$curlStatus. Body = $curlBody"
       debugPrint "Response is: "
       status=1
     else
@@ -803,7 +830,7 @@ function stopApp {
 }
 
 function statusApp {
-  print "Status of application on port $port : "
+  tracePrint "Status of application on port $port : "
   
   increment_print_tabs
 
@@ -811,21 +838,17 @@ function statusApp {
   
   debugPrint "Check health of application via actuator url $url"
   
-  curl -k -X GET -o /dev/null -I -w "%{http_code}" -m 5 $url > httpCode 2>/dev/null
-  httpCode=`cat httpCode`
-  rm httpCode
+  exeCurl $url
 	
   local status=$?
   if [ $status != 0 ] ; then
     errorPrint "Instance not available"
     status=1
-  elif [ "$httpCode" == "404" ]; then
-    warningPrint "UP but Health Url does not exist: $url"
-  elif [ "$httpCode" != "200" ]; then
-    errorPrint "Problem while targeting url $url. Http error code=$httpCode"
+  elif [ "$curlStatus" == "404" ]; then
+    warningPrint "UP but Health Url does not exist: $curlStatus"
+  elif [ "$curlStatus" != "200" ]; then
+    errorPrint "Problem while targeting url $url. Http error code=$curlStatus"
     status=1
-  else
-    print "UP"
   fi
 
   decrement_print_tabs
@@ -986,17 +1009,15 @@ function listPids {
 function status {
   parsePortOption true false
   if [[ ! -z $portArr ]]; then
-    increment_print_tabs
-    
     for port in "${portArr[@]}"
     do
       statusApp $port
-      if [ "$?" == 1 ] ; then
+      if [ "$?" != 0 ] ; then
         exitStatus=1
+      else
+        print "$port => UP"
       fi
     done
-    
-    decrement_print_tabs
   else
     print "No instance found..."
   fi
