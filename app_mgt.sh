@@ -195,7 +195,7 @@ function warningPrint {
 
 function debugPrint {
   local msg=$1
-  if [ "$debug_option" = true -o "$trace_option" = true ]; then
+  if [ "$debug_option" = true ]; then
     if [[ ! -z $msg ]]; then
       msg="DEBUG: $msg"
     fi
@@ -1141,6 +1141,7 @@ if [ "$action" == "-d" ] || [ "$action" == "--debug" ]; then
   action=$1
 elif [ "$action" == "-tr" ] || [ "$action" == "--trace" ]; then
   print "Set Trace mode"
+  debug_option=true
   trace_option=true
   shift
   action=$1
