@@ -7,7 +7,7 @@ BASEDIR=$(dirname $0)
 
 # Constants
 EMPTY_DEPLOY_KEY="<empty>"
-SERVICE_DATA_FOLDER="$TMPDIR/boot_service"
+SERVICE_DATA_FOLDER="$TMPDIR/app_mgt"
 WATCH_OUTPUT_DIR="$SERVICE_DATA_FOLDER/app_output"
 LOG_FILE_START_LINE="Started "
 LOG_FILE_FAILED_LINE="APPLICATION FAILED TO START"
@@ -615,7 +615,7 @@ function stopPid {
 
 function setLogFile {
   logFile="$DEFAULT_LOG_FILE"
-  if [ "$watch_log" = true -o "$debug" = true ]; then
+  if [ "$watch_log" = true -o "$debug_option" = true ]; then
     logFile="${WATCH_OUTPUT_DIR}/output.$RANDOM"
   fi
 }
@@ -747,9 +747,20 @@ function stopApp {
   
     debugPrint "Stopping smoothly application via actuator url $url" false
 
-    curl -X POST -o /dev/null -I -w "%{http_code}" -m 5 $url > httpCode 2>/dev/null
+    local curlOutputFile="/dev/null"
+    if [[ "$debug_option" = "true" ]]; then
+      curlOutputFile="${SERVICE_DATA_FOLDER}/curl_output.$RANDOM"
+      debugPrint "Set curl output debug file $curlOutputFile"
+    fi
+
+    curl -X POST -o "$curlOutputFile" -I -w "%{http_code}" -m 5 $url > httpCode 2>/dev/null
     httpCode=`cat httpCode`
     rm httpCode
+
+    if [[ "$debug_option" = "true" ]]; then
+      local curlOutput=`cat "$curlOutputFile"`
+      debugPrint "Got curl output $curlOutput"
+    fi
 	  
     status=$?
     if [ $status != 0 ] ; then
