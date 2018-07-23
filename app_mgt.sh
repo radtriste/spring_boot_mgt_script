@@ -950,18 +950,28 @@ function listPorts {
 }
 
 function listPids {
-  increment_print_tabs
-  getRunningPids
-  decrement_print_tabs
+  parsePortOption false false
+  if [[ -z "$portArr" ]]; then
+    increment_print_tabs
+    getRunningPids
+    decrement_print_tabs
 
-  if [[ ! -z $pidArr ]]; then
-    output=""
-    for p in "${pidArr[@]}"
-    do
-      print $p
-    done
+    if [[ ! -z $pidArr ]]; then
+      output=""
+      for p in "${pidArr[@]}"
+      do
+        print $p
+      done
+    else
+      print "No pid found..."
+    fi
   else
-    print "No pid found..."
+    for p in "${portArr[@]}"
+    do
+      port=$p
+      getPidFromPort
+      print $pid
+    done
   fi
 }
 
@@ -1288,7 +1298,6 @@ case "$action" in
     checkAppName
     restart
     ;;
-    
     
   nb)  	
     checkAppName
