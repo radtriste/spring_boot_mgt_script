@@ -585,7 +585,7 @@ function stopPid {
   if [ $pid ]; then
     debugPrint "Kill process with pid $pid"
     
-    local status=0
+    local status=1
     kill $pid > /dev/null 2>&1
 
     debugPrint "Smooth Killing... Waiting for process to stop..." false
