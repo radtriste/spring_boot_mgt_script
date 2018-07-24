@@ -172,9 +172,11 @@ function print {
   fi
 
   if [[ -z $3 ]] || [[ "$3" != "false" ]]; then
-    for i in $(seq 1 $print_tab); 
+    i=1
+    while [ $i -le $print_tab ];
     do 
-      msg="\t$msg"; 
+      msg="\t$msg";
+      i=$((i+1))
     done
   fi
 
