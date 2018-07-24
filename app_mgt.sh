@@ -142,7 +142,7 @@ function usage {
     print "-ap | --actuator_path"
     print "\tStop/Status parameter. Actuator path. This parameter gives on which prefix path are actuator services (status & smooth stop). 'manage/' by default."
     print "-f | --file"
-    print "\tLogs parameter. Filepath to the log file. You can use env variables as well as {pid} and {port} placeholders."
+    print "\tLogs parameter. Filepath to the log file. You can use env variables as well as {pid}, {port} and {app} placeholders."
     print "-k | --kill"
     print "\tStop parameter. Kill -9 directly the application. No smooth stop ..."
     print "-n | --nb_inst"
@@ -1146,7 +1146,7 @@ function showLogs {
       port=$p
       getPidFromPort
       echo $file_option
-      logFile=$(echo "$file_option" | sed -e "s/{pid}/${pid}/g")
+      logFile=$(echo "$file_option" | sed -e "s/{pid}/${pid}/g" | sed -e "s/{port}/${port}/g" | sed -e "s/{app}/${appName}/g")
       eval "$logsDetails $logFile"
       break
     done
