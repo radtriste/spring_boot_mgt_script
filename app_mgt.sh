@@ -1081,13 +1081,15 @@ function start {
       portParam="--server.port=0"
  
       increment_print_tabs
-      for i in `seq 1 $nb_inst`
+      i=1
+      while [ $i -le $nb_inst ]; 
       do
         getStartCommandFromOptions "$profileParam $portParam"
         startApp
         if [ "$?" == 1 ] ; then
           exitStatus=1
         fi
+        i=$((i+1))
       done
       decrement_print_tabs
     else
