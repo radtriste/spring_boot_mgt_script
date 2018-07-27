@@ -248,7 +248,7 @@ function exeCurl {
 
   tracePrint "exeCurl with url $curlUrl and method $curlMethod"
 
-  curlOutput=$(curl -si -d "" --request "$curlMethod" http://$curlUrl)
+  curlOutput=$(curl -si -d "" --request "$curlMethod" -m 5 http://$curlUrl)
   curlHeader=""
   curlBody=""
   curlStatus=""
