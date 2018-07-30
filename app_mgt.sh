@@ -319,7 +319,7 @@ function getDeploymentKeys {
   deployKeysArrIndex=0
 
   # Get process without deployment key
-  cmdLine="ps -ef | grep $appName | grep -v grep | grep -v $SCRIPT_NAME | grep -v \"deployment\.key\" | wc -l | tr -d '[:space:]'"
+  cmdLine="ps -ef | grep ' $appName' | grep -v grep | grep -v $SCRIPT_NAME | grep -v \"deployment\.key\" | wc -l | tr -d '[:space:]'"
   exeShellCmdLine
   if [[ "$resCmdLine" != "0" ]]; then
     tracePrint "Add <empty> deployment key\n"
@@ -328,7 +328,7 @@ function getDeploymentKeys {
   fi
 
   # Get deployment keys
-  cmdLine="ps -ef | grep $appName | grep -v grep | grep -v $SCRIPT_NAME | grep \"deployment\.key\"  | awk '{ s = \"\"; for (i = 9; i <= NF; i++) s = s \$i \" \"; print s }' | tr ' ' '\\n' | grep $DEPLOY_KEY | awk -F'[=]' '{print \$2}'"
+  cmdLine="ps -ef | grep ' $appName' | grep -v grep | grep -v $SCRIPT_NAME | grep \"deployment\.key\"  | awk '{ s = \"\"; for (i = 9; i <= NF; i++) s = s \$i \" \"; print s }' | tr ' ' '\\n' | grep $DEPLOY_KEY | awk -F'[=]' '{print \$2}'"
   exeShellCmdLine
 
   while read -r value
@@ -484,7 +484,7 @@ function getRunningPids {
   unset pidArr
   pidArrIndex=0
 
-  cmdLine="ps -ef | grep $appName | grep -v grep | grep -v $SCRIPT_NAME"
+  cmdLine="ps -ef | grep ' $appName' | grep -v grep | grep -v $SCRIPT_NAME"
   if [[ "$deployment_key" != "$EMPTY_DEPLOY_KEY" ]]; then
     cmdLine="$cmdLine | grep \"$DEPLOY_KEY=$deployment_key \""
   else
