@@ -172,11 +172,11 @@ function print {
   fi
 
   if [[ -z $3 ]] || [[ "$3" != "false" ]]; then
-    i=1
-    while [ $i -le $print_tab ];
+    printTabNb=1
+    while [ $printTabNb -le $print_tab ];
     do 
       msg="\t$msg";
-      i=$((i+1))
+      printTabNb=$((printTabNb+1))
     done
   fi
 
@@ -641,7 +641,7 @@ function stopPid {
     kill $pid > /dev/null 2>&1
 
     debugPrint "Smooth Killing... Waiting for process to stop..." false
-    i=1; while [ $i -le $timeout ] && [[ "$status" != "0" ]]; do
+    stopPidTiming=1; while [ $stopPidTiming -le $timeout ] && [[ "$status" != "0" ]]; do
       if check_if_process_is_running
       then
         debugPrint "." false false
@@ -649,7 +649,7 @@ function stopPid {
       else
         status=0
       fi
-      i=$(($i + 1))
+      stopPidTiming=$(($stopPidTiming + 1))
     done
     debugPrint
 	  
@@ -677,7 +677,7 @@ function watchBootFiles {
   print "Starting..." false
   
   status=1
-  i=1; while [ $i -le $timeout ]; do
+  watchTiming=1; while [ $watchTiming -le $timeout ]; do
     if [ -f $applicationPortFile ]; then
       getLaunchedAppPid
       getLaunchedAppPort
@@ -687,7 +687,7 @@ function watchBootFiles {
       print "." false false
       sleep 1
     fi
-    i=$(($i + 1))
+    watchTiming=$(($watchTiming + 1))
   done
 
   print
@@ -813,7 +813,7 @@ function stopApp {
       status=1
     else
       status=1
-      i=1; while [ $i -le $timeout ] && [[ "$status" != "0" ]]; do
+      stopAppTiming=1; while [ $stopAppTiming -le $timeout ] && [[ "$status" != "0" ]]; do
         if check_if_process_is_running
         then
           print "." false false
@@ -821,7 +821,7 @@ function stopApp {
         else
           status=0
         fi
-        i=$(($i + 1))
+        stopAppTiming=$(($stopAppTiming + 1))
       done
     fi
     print
@@ -1090,15 +1090,15 @@ function start {
       portParam="--server.port=0"
  
       increment_print_tabs
-      i=1
-      while [ $i -le $nb_inst ]; 
+      local startNb=1
+      while [ $startNb -le $nb_inst ];
       do
         getStartCommandFromOptions "$profileParam $portParam"
         startApp
         if [ "$?" == 1 ] ; then
           exitStatus=1
         fi
-        i=$((i+1))
+        startNb=$((startNb+1))
       done
       decrement_print_tabs
     else
