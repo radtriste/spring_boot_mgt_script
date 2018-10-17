@@ -280,6 +280,9 @@ function containsElement () {
 }
 
 function checkAppName {
+  local checkAppFolder=$1
+  tracePrint "CheckAppName with checkAppFolder = $checkAppFolder"
+
   # Get app name as second arg
   if [ "$appName" == "" ]; then
     errorPrint "Need an application name to execute ..."
@@ -288,10 +291,12 @@ function checkAppName {
     exit 1
   fi
 
-  if [ ! -d "$appName" ]; then
-    errorPrint "$appName does not exist ...\n\n"
-    usage
-    exit 1
+  if [[ -z "$checkAppFolder" ]]  || [[ "$checkAppFolder" = true ]]; then
+    if [ ! -d "$appName" ]; then
+      errorPrint "$appName does not exist ...\n\n"
+      usage
+      exit 1
+    fi
   fi
 }
 
@@ -366,14 +371,18 @@ function setupEnv {
   
   # Calculate jar name
   if [[ ! -z $appName ]];then
-    jarPath=`find $appName -name "$appName*.jar"`
-    jarName=`basename $jarPath`
-    applicationPortFile="$appName/application.port"
-    applicationPidFile="$appName/application.pid"
+    jarPath=`find $appName -name "$appName*.jar" 2>/dev/null`
+    if [[ "$?" = 0 ]]; then
+      jarName=`basename $jarPath`
+      applicationPortFile="$appName/application.port"
+      applicationPidFile="$appName/application.pid"
     
-    debugPrint "Jar found = $jarName in $jarPath"
-    debugPrint "applicationPortFile = $applicationPortFile"
-    debugPrint "applicationPidFile = $applicationPidFile"
+      debugPrint "Jar found = $jarName in $jarPath"
+      debugPrint "applicationPortFile = $applicationPortFile"
+      debugPrint "applicationPidFile = $applicationPidFile"
+    else
+      debugPrint "Jar not found"
+    fi
   fi
 
   if [[ -z $deployment_key ]]; then
@@ -381,14 +390,14 @@ function setupEnv {
     deployment_key=$EMPTY_DEPLOY_KEY
   fi
 
-  if [ -z actuator_path_option ]; then
+  if [[ ! -z $actuator_path_option ]]; then
     actuator_path="$actuator_path_option"
   else
     actuator_path="$DEFAULT_ACTUATOR_PATH"
   fi
   debugPrint "actuator_path=$actuator_path"
 
-  if [ -z timeout_option ]; then
+  if [[ ! -z $timeout_option ]]; then
     timeout=$timeout_option
   else
     timeout=$DEFAULT_TIMEOUT
@@ -1335,17 +1344,17 @@ case "$action" in
 
   # App actions
   status)
-    checkAppName
+    checkAppName false
     status
     ;;
 
   logs)
-    checkAppName
+    checkAppName false
     showLogs
     ;;
     
   stop)
-    checkAppName
+    checkAppName false
     stop
     ;;
     
@@ -1360,7 +1369,7 @@ case "$action" in
     ;;
     
   nb)  	
-    checkAppName
+    checkAppName false
     getRunningPids
     print "${#pidArr[@]}"
     ;;
