@@ -495,7 +495,7 @@ function getRunningPids {
 
   cmdLine="ps -ef | grep ' $appName' | grep -v grep | grep -v $SCRIPT_NAME"
   if [[ "$deployment_key" != "$EMPTY_DEPLOY_KEY" ]]; then
-    cmdLine="$cmdLine | grep \"$DEPLOY_KEY=$deployment_key \""
+    cmdLine="$cmdLine | grep \"$DEPLOY_KEY=$deployment_key\""
   else
     cmdLine="$cmdLine | grep -v \"$DEPLOY_KEY\""
   fi
