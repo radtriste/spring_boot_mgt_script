@@ -1,5 +1,5 @@
 @Library("aiti-shared-libs")
-import de.lv1871.aiti.monitoring.jenkins.apps.CopyRepoFilesJob
+import de.lv1871.jenkins.apps.CopyRepoFilesJob
 
 String APPS_FOLDER="/infra/apps"
 
