@@ -19,7 +19,7 @@ DEPLOY_PARAMS_WATCH=$DEPLOY_PARAMS_PREFIX".watch"
 DEPLOY_PARAMS_ACTUATOR_PATH=$DEPLOY_PARAMS_PREFIX".actuator_path"
 DEPLOY_PARAMS_TIMEOUT=$DEPLOY_PARAMS_PREFIX".timeout"
 
-DEFAULT_ACTUATOR_PATH="manage/"
+DEFAULT_ACTUATOR_PATH="actuator/"
 DEFAULT_TIMEOUT=90
 DEFAULT_LOG_FILE="/dev/null"
 
@@ -140,7 +140,7 @@ function usage {
     print "-pa | --param"
     print "\tStart parameter. Many values. Extra parameter that you can give directly to the start of the application."
     print "-ap | --actuator_path"
-    print "\tStop/Status parameter. Actuator path. This parameter gives on which prefix path are actuator services (status & smooth stop). 'manage/' by default."
+    print "\tStop/Status parameter. Actuator path. This parameter gives on which prefix path are actuator services (status & smooth stop). 'actuator/' by default."
     print "-f | --file"
     print "\tLogs parameter. Filepath to the log file. You can use env variables as well as {pid}, {port} and {app} placeholders."
     print "-k | --kill"
