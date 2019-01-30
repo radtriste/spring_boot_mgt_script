@@ -634,7 +634,7 @@ function check_if_process_is_running {
 }
 
 function stopPid {
-  if [ $pid ]; then
+  if [[ ! -z $pid ]]; then
     debugPrint "Kill process with pid $pid"
     
     local status=1
