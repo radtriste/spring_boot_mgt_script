@@ -672,10 +672,43 @@ function setLogFile {
   fi
 }
 
+function watchActuator {
+  print "Wait for actuator health endpoint to answer correctly"
+  print "Starting..." false
+
+  status=1
+  watchTiming=1; while [ $watchTiming -le $timeout ]; do
+    getPortFromPid
+
+    url="localhost:$port/"$actuator_path"health"
+
+    exeCurl $url
+
+    local status=$?
+    if [ $status != 0 ] ; then
+      status=1
+    elif [ "$curlStatus" != "200" ]; then
+      # errorPrint "Problem while targeting url $url. Http error code=$curlStatus"
+      status=1
+    else
+      status=0
+      break
+    fi
+
+    print "." false false
+    sleep 1
+    watchTiming=$(($watchTiming + 1))
+  done
+
+  print
+
+  return $status
+}
+
 function watchBootFiles {
   print "Wait for $applicationPidFile and $applicationPortFile files for start"
   print "Starting..." false
-  
+
   status=1
   watchTiming=1; while [ $watchTiming -le $timeout ]; do
     if [ -f $applicationPortFile ]; then
@@ -695,10 +728,10 @@ function watchBootFiles {
   return $status
 }
 
-function watchLogFile {	
+function watchLogFile {
   print "Watch log output file with timeout $timeout"
   print "Starting..." false
-	
+
   # Let time for the log file to be created
   sleep 2
 
@@ -712,7 +745,7 @@ function watchLogFile {
       port=$(($temp_port))
       temp_pid=$(echo "$line" | cut -d "INFO" -f 2 | cut -d "$LOG_FILE_STARTED_ON_PORT" -f 1 |  tr -dc '0-9')
       pid=$(($temp_pid))
-			
+
       debugPrint "Got port $port and pid $pid"
     fi
 
@@ -751,11 +784,12 @@ function startApp {
   fi
 
   setLogFile
-  
+
   print "Start application $appName with command: $start_command"
   print "Log output file: $logFile"
 
   nohup sh -c "$start_command" > $logFile 2>&1 &
+  pid=$!
   
   increment_print_tabs
 
@@ -763,7 +797,7 @@ function startApp {
   if [ "$watch_log" = true ]; then
     watchLogFile
   else
-    watchBootFiles
+    watchActuator
   fi
   status=$?
  
