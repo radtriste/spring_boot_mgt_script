@@ -1,0 +1,6 @@
+== Application management bash script
+
+This script allows to manipulate Spring boot applications on a Unix machine.
+
+[IMPORTANT]
+It has only be tested on AIX machines ...
