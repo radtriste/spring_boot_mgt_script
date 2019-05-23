@@ -1,6 +1,12 @@
-== Application management bash script
+== Application management bash CLI
 
 This script allows to manipulate Spring boot applications on a Unix machine.
+
+Launch this command to get the CLI help:
+[source,shell]
+----
+app_mgt.sh
+----
 
 [IMPORTANT]
 It has only be tested on AIX machines ...
