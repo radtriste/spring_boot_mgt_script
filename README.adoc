@@ -5,7 +5,7 @@ This script allows to manipulate Spring boot applications on a Unix machine.
 Launch this command to get the CLI help:
 [source,shell]
 ----
-app_mgt.sh
+spring_boot_mgt_script.sh
 ----
 
 [IMPORTANT]
